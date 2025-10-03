@@ -30,6 +30,24 @@ const User = db.define('User', {
       }
     }
   },
+  email: {
+    type: DataTypes.STRING(150),
+    allowNull: true,
+    unique: true,
+    validate: {
+      isEmail: {
+        msg: 'Email inválido'
+      },
+      len: {
+        args: [5, 150],
+        msg: 'Email deve ter entre 5 e 150 caracteres'
+      }
+    }
+  },
+  password: {
+    type: DataTypes.STRING,
+    allowNull: true,
+  },
   newsletter: {
     type: DataTypes.BOOLEAN,
     defaultValue: false,

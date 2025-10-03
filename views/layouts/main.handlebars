@@ -16,6 +16,14 @@
         <li><a href="/">📋 Listar Usuários</a></li>
         <li><a href="/users/create">➕ Cadastrar Usuário</a></li>
       </ul>
+      <div class="nav-actions">
+        {{#if currentUser}}
+          <span class="nav-user">👋 {{currentUser.name}}</span>
+          <a href="/logout">Sair</a>
+        {{else}}
+          <a href="/login">Entrar</a>
+        {{/if}}
+      </div>
     </nav>
     <main class="container">
       {{{ body }}}

@@ -3,6 +3,9 @@ const exphbs = require('express-handlebars');
 const Handlebars = require('handlebars');
 const path = require('path');
 const moment = require('moment');
+const session = require('express-session');
+const bcrypt = require('bcryptjs');
+require('dotenv').config();
 
 // Importando conexão e modelos
 const conn = require('./db/conn');
@@ -36,6 +39,20 @@ app.use(express.json());
 // Servir arquivos estáticos
 app.use(express.static(path.join(__dirname, 'public')));
 
+// Sessões para autenticação
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'secret_dev_change_this',
+  resave: false,
+  saveUninitialized: false,
+  cookie: { maxAge: 1000 * 60 * 60 * 24 }
+}));
+
+// Disponibiliza usuário nas views
+app.use((req, res, next) => {
+  res.locals.currentUser = req.session.user || null;
+  next();
+});
+
 // Middleware de log das requisições
 app.use((req, res, next) => {
   console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
@@ -48,12 +65,17 @@ app.use((req, res, next) => {
 
 // Página inicial - Lista todos os usuários
 app.get('/', async (req, res) => {
+  // exigir autenticação para acessar a raiz
+  if (!req.session.user) {
+    req.session.returnTo = req.originalUrl || req.url;
+    return res.redirect('/login');
+  }
   try {
     const users = await User.findAll({
       order: [['createdAt', 'DESC']], // Mais recentes primeiro
       raw: true
     });
-  
+
     console.log(`Encontrados ${users.length} usuários`);
     res.render('home', { users });
   } catch (error) {
@@ -71,6 +93,10 @@ app.get('/', async (req, res) => {
 
 // Página de cadastro de usuário
 app.get('/users/create', (req, res) => {
+  if (!req.session.user) {
+    req.session.returnTo = req.originalUrl || req.url;
+    return res.redirect('/login');
+  }
   res.render('adduser');
 });
 
@@ -92,6 +118,10 @@ app.post('/users/create', async (req, res) => {
       occupation: occupation ? occupation.trim() : null,
       newsletter: newsletter === 'on'
     };
+
+    // Se for fornecido email/senha (via formulário), hash e use
+    if (req.body.email) userData.email = req.body.email.trim();
+    if (req.body.password) userData.password = await bcrypt.hash(req.body.password, 10);
 
     const user = await User.create(userData);
     console.log('Usuário criado:', user.toJSON());
@@ -197,6 +227,10 @@ app.post('/users/update', async (req, res) => {
 // Excluir usuário
 app.post('/users/delete/:id', async (req, res) => {
   try {
+    if (!req.session.user) {
+      req.session.returnTo = req.originalUrl || req.url;
+      return res.redirect('/login');
+    }
     const { id } = req.params;
   
     // Primeiro, deletar todos os endereços do usuário
@@ -229,6 +263,10 @@ app.post('/users/delete/:id', async (req, res) => {
 // Criar novo endereço
 app.post('/address/create', async (req, res) => {
   try {
+    if (!req.session.user) {
+      req.session.returnTo = req.originalUrl || req.url;
+      return res.redirect('/login');
+    }
     const { userId, street, number, city } = req.body;
   
     // Validação
@@ -260,6 +298,10 @@ app.post('/address/create', async (req, res) => {
 // Excluir endereço
 app.post('/address/delete', async (req, res) => {
   try {
+    if (!req.session.user) {
+      req.session.returnTo = req.originalUrl || req.url;
+      return res.redirect('/login');
+    }
     const { id, userId } = req.body;
   
     const deletedRows = await Address.destroy({
@@ -275,6 +317,59 @@ app.post('/address/delete', async (req, res) => {
     console.error('Erro ao excluir endereço:', error);
     res.redirect('/');
   }
+});
+
+// ===============================
+// AUTENTICAÇÃO (login/logout)
+// ===============================
+
+app.get('/login', (req, res) => {
+  if (req.session.user) return res.redirect('/');
+  res.render('login');
+});
+
+app.post('/login', async (req, res) => {
+  const { email, password } = req.body;
+  try {
+    const user = await User.findOne({ where: { email } });
+    if (!user) return res.render('login', { error: 'Credenciais inválidas', form: { email } });
+    const match = await bcrypt.compare(password, user.password || '');
+    if (!match) return res.render('login', { error: 'Credenciais inválidas', form: { email } });
+    req.session.user = { id: user.id, name: user.name, email: user.email };
+    const redirectTo = req.session.returnTo || '/';
+    delete req.session.returnTo;
+    res.redirect(redirectTo);
+  } catch (err) {
+    console.error('Erro no login:', err);
+    res.render('login', { error: 'Erro ao realizar login' });
+  }
+});
+
+// Rotas de registro
+app.get('/register', (req, res) => {
+  if (req.session.user) return res.redirect('/');
+  res.render('register');
+});
+
+app.post('/register', async (req, res) => {
+  const { name, email, password, passwordConfirm } = req.body;
+  if (!name || !email || !password) return res.render('register', { error: 'Preencha todos os campos', form: req.body });
+  if (password !== passwordConfirm) return res.render('register', { error: 'Senhas não conferem', form: req.body });
+  try {
+    const hash = await bcrypt.hash(password, 10);
+    const user = await User.create({ name: name.trim(), email: email.trim(), password: hash });
+    req.session.user = { id: user.id, name: user.name, email: user.email };
+    const redirectTo = req.session.returnTo || '/';
+    delete req.session.returnTo;
+    res.redirect(redirectTo);
+  } catch (err) {
+    console.error('Erro no registro:', err);
+    res.render('register', { error: err.message, form: req.body });
+  }
+});
+
+app.get('/logout', (req, res) => {
+  req.session.destroy(() => res.redirect('/'));
 });
 
 // ===============================
