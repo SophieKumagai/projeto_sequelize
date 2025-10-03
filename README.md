@@ -24,6 +24,18 @@ Recursos
 - Gerenciamento de endereços vinculados a usuários
 - Autenticação básica por sessão (express-session) e hash de senhas (bcryptjs)
 
+Tecnologias utilizadas
+----------------------
+- Node.js
+- Express
+- Sequelize (ORM)
+- MySQL (mysql2)
+- Handlebars (express-handlebars)
+- express-session (sessões)
+- bcryptjs (hash de senhas)
+- dotenv (variáveis de ambiente)
+- nodemon (dev)
+
 Pré-requisitos
 --------------
 - Node.js (recomendado >= 14)
