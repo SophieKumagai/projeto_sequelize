@@ -1,66 +1,81 @@
-# Projeto Sequelize - Sistema de Usuários
+# 🚀 Projeto Sequelize - Sistema de Usuários
 
-Aplicação de exemplo para gerenciar usuários e endereços usando Node.js, Express e Sequelize (MySQL).
+![Node.js](https://img.shields.io/badge/Node.js-14+-green)
+![MySQL](https://img.shields.io/badge/MySQL-5.7-blue)
+![Express](https://img.shields.io/badge/Express-4.x-lightgrey)
+![License](https://img.shields.io/badge/License-MIT-yellow)
+![npm](https://img.shields.io/badge/npm-latest-red)
 
-Este README traz instruções de instalação, configuração, execução e uso (incluindo autenticação simples por sessão).
+Aplicação de exemplo para **gerenciar usuários e endereços** usando **Node.js, Express e Sequelize (MySQL)**.
+Inclui autenticação simples com sessões, CRUD completo e templates com Handlebars.
 
-Sumário
--------
-- Recursos
-- Pré-requisitos
-- Instalação
-- Variáveis de ambiente (.env)
-- Banco de dados
-- Como executar
-- Autenticação (login / registro)
-- Rotas principais
-- Estrutura do projeto
-- Notas de produção
-- Contribuição
+---
 
-Recursos
---------
-- CRUD de usuários (create/read/update/delete)
-- Gerenciamento de endereços vinculados a usuários
-- Autenticação básica por sessão (express-session) e hash de senhas (bcryptjs)
+## 📑 Sumário
 
-Tecnologias utilizadas
-----------------------
-- Node.js
-- Express
-- Sequelize (ORM)
-- MySQL (mysql2)
-- Handlebars (express-handlebars)
-- express-session (sessões)
-- bcryptjs (hash de senhas)
-- dotenv (variáveis de ambiente)
-- nodemon (dev)
+* [✨ Recursos](#-recursos)
+* [🛠 Tecnologias](#-tecnologias-utilizadas)
+* [📋 Pré-requisitos](#-pré-requisitos)
+* [⚙️ Instalação](#️-instalação)
+* [🔑 Variáveis de ambiente](#-variáveis-de-ambiente-env)
+* [🗄 Banco de dados](#-banco-de-dados)
+* [▶️ Como executar](#️-como-executar)
+* [🔐 Autenticação](#-autenticação-login--registro)
+* [🌐 Rotas principais](#-rotas-principais)
+* [📂 Estrutura do projeto](#-estrutura-do-projeto)
+* [🐞 Depuração](#-depuração--troubleshooting)
+* [📜 Licença](#-licença)
 
-Pré-requisitos
---------------
-- Node.js (recomendado >= 14)
-- MySQL ou MariaDB
+---
 
-Instalação
----------
-1. Clone o repositório e entre na pasta do projeto:
+## ✨ Recursos
+
+* CRUD de **usuários** (Create, Read, Update, Delete)
+* Gerenciamento de **endereços vinculados** a usuários
+* Autenticação por sessão (`express-session`)
+* **Hash seguro de senhas** com `bcryptjs`
+
+---
+
+## 🛠 Tecnologias utilizadas
+
+* **Node.js**
+* **Express**
+* **Sequelize (ORM)**
+* **MySQL (mysql2)**
+* **Handlebars (express-handlebars)**
+* **express-session** (sessões)
+* **bcryptjs** (hash de senhas)
+* **dotenv** (variáveis de ambiente)
+* **nodemon** (ambiente de dev)
+
+---
+
+## 📋 Pré-requisitos
+
+* Node.js (>= 14 recomendado)
+* MySQL ou MariaDB
+
+---
+
+## ⚙️ Instalação
 
 ```powershell
+# Clone o repositório
 git clone https://github.com/SophieKumagai/projeto_sequelize.git
 cd projeto_sequelize
-```
 
-2. Instale as dependências:
-
-```powershell
+# Instale as dependências
 npm install
 ```
 
-Variáveis de ambiente (.env)
----------------------------
-Crie um arquivo `.env` na raiz com as configurações do banco e, opcionalmente, a chave de sessão:
+---
 
-```
+## 🔑 Variáveis de ambiente (.env)
+
+Crie um arquivo `.env` na raiz:
+
+```ini
 db_user=seu_usuario
 db_password=sua_senha
 db_host=localhost
@@ -68,74 +83,91 @@ db_port=3306
 SESSION_SECRET=uma_chave_secreta_aqui
 ```
 
-Banco de dados
---------------
-O projeto usa por padrão o banco `nodesequelize` (configure em `db/conn.js`). Há um arquivo `banco_instrucoes.sql` com instruções de criação de tabelas.
+---
 
-Para importar (exemplo):
+## 🗄 Banco de dados
+
+O projeto usa por padrão o banco `nodesequelize` (configure em `db/conn.js`).
+Há um arquivo `banco_instrucoes.sql` com as instruções de criação de tabelas.
+
+Importar:
 
 ```powershell
 mysql -u seu_usuario -p < banco_instrucoes.sql
 ```
 
-Ou execute manualmente os comandos SQL dentro do arquivo.
+---
 
-Como executar
--------------
-- Modo produção:
+## ▶️ Como executar
+
+* **Produção**
 
 ```powershell
 npm start
 ```
 
-- Modo desenvolvimento (com nodemon se preferir):
+* **Desenvolvimento** (com nodemon):
 
 ```powershell
 npm run dev
 ```
 
-A aplicação ficará disponível em `http://localhost:3000`.
+Aplicação disponível em: [http://localhost:3000](http://localhost:3000)
 
-Autenticação (login / registro)
---------------------------------
-O projeto possui autenticação simples por sessão:
+---
 
-- GET `/login` — formulário de login.
-- POST `/login` — processo de autenticação; ao logar com sucesso a sessão é criada.
-- GET `/logout` — encerra a sessão.
-- GET `/register` — formulário de cadastro simplificado, pedindo apenas as informações de nome, e-mail e senha.
-- POST `/register` — cria um usuário a partir dos campos de `register` e autentica-o.
+## 🔐 Autenticação (login / registro)
 
-Fluxo de redirecionamento:
-- Quando uma rota protegida é acessada sem autenticação, o app salva a URL solicitada em `req.session.returnTo` e redireciona para `/login`.
-- Depois de logar ou registrar, o usuário é redirecionado de volta à URL original (ou `/` se não houver).
+* `GET /login` → formulário de login
+* `POST /login` → autenticação
+* `GET /logout` → encerra sessão
+* `GET /register` → formulário de cadastro (nome, e-mail, senha)
+* `POST /register` → cria usuário e autentica
 
-Rotas principais
-----------------
-- GET `/` - lista de usuários
-- GET `/users/create` - formulário de criação
-- POST `/users/create` - cria usuário
-- GET `/users/:id` - visualização de usuário com endereços
-- GET `/users/edit/:id` - formulario de edição
-- POST `/users/update` - atualiza usuário
-- POST `/users/delete/:id` - deleta usuário (e seus endereços)
-- POST `/address/create` - cria endereço para usuário
-- POST `/address/delete` - deleta endereço
+🔄 **Redirecionamento inteligente:**
+Se o usuário tentar acessar uma rota protegida sem login, é salvo `req.session.returnTo`.
+Após logar, ele retorna à página original (ou `/`).
 
-Estrutura do projeto
---------------------
-- `index.js` — servidor Express e rotas
-- `db/conn.js` — conexão e configuração Sequelize
-- `models/` — `User.js`, `Address.js`
-- `views/` — templates Handlebars
-- `public/` — CSS e assets estáticos
-- `banco_instrucoes.sql` — instruções para criar o banco
+---
 
-Depuração / troubleshooting
---------------------------
-- Se o servidor não iniciar, verifique as variáveis do `.env` e se o MySQL está acessível.
-- Logs do Sequelize aparecem no console. Se houver erros de coluna/índice, verifique se o esquema do banco corresponde aos models.
+## 🌐 Rotas principais
 
-Licença
--------
-MIT
+* `GET /` → lista de usuários
+* `GET /users/create` → formulário de criação
+* `POST /users/create` → cria usuário
+* `GET /users/:id` → visualiza usuário + endereços
+* `GET /users/edit/:id` → formulário de edição
+* `POST /users/update` → atualiza usuário
+* `POST /users/delete/:id` → exclui usuário e endereços
+* `POST /address/create` → cria endereço
+* `POST /address/delete` → remove endereço
+
+---
+
+## 📂 Estrutura do projeto
+
+```
+projeto_sequelize/
+│── index.js              # servidor Express e rotas
+│── db/conn.js            # conexão Sequelize
+│── models/               # User.js, Address.js
+│── views/                # templates Handlebars
+│── public/               # CSS e arquivos estáticos
+│── banco_instrucoes.sql  # script do banco
+```
+
+---
+
+## 🐞 Depuração / Troubleshooting
+
+* Verifique `.env` e conexão MySQL caso o servidor não inicie
+* Sequelize mostra logs no console
+* Se houver erro de colunas/índices → confira se o banco está sincronizado com os models
+
+---
+
+## 📜 Licença
+
+[MIT](LICENSE)
+
+---
