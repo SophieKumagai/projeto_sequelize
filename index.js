@@ -3,6 +3,7 @@ const exphbs = require('express-handlebars');
 const Handlebars = require('handlebars');
 const path = require('path');
 const moment = require('moment');
+const { Op } = require('sequelize');
 const session = require('express-session');
 const bcrypt = require('bcryptjs');
 require('dotenv').config();
@@ -71,13 +72,20 @@ app.get('/', async (req, res) => {
     return res.redirect('/login');
   }
   try {
+    const { q } = req.query;
+    const where = {};
+    if (q) {
+      where.name = { [Op.like]: `%${q}%` };
+    }
+
     const users = await User.findAll({
+      where,
       order: [['createdAt', 'DESC']], // Mais recentes primeiro
       raw: true
     });
 
     console.log(`Encontrados ${users.length} usuários`);
-    res.render('home', { users });
+    res.render('home', { users, filters: { q: q || '' } });
   } catch (error) {
     console.error('Erro ao buscar usuários:', error);
     res.render('home', { 

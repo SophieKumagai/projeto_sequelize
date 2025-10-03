@@ -3,6 +3,11 @@
   <a href="/users/create" class="btn btn-primary">➕ Adicionar Novo Usuário</a>
 </div>
 
+<form class="search-form" method="GET" action="/">
+  <input type="text" name="q" placeholder="Pesquisar por nome" value="{{filters.q}}" />
+  <button type="submit" class="btn btn-secondary">🔎 Buscar</button>
+</form>
+
 {{#if users}}
 <div class="users-grid">
   {{#each users}}
